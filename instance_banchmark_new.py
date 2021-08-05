@@ -65,12 +65,13 @@ for f in file_list:
             temp_due.append(int(s[j][i+1])+int(pt[j][i+1]) + int(np.random.choice([20,b], size=1, p=[1-((1/n)/2),(1/n)/2])))
         due.append(temp_due)      
     
-    for j in range(m):        
-        file.write(str(j+1) + " " + str(r_a[j]) + " " + str(r_b[j]) + "\n")
 
     for j in range(m):
         n = n_list[j] 
-        file.write(str(j+1) + " " + str(h) + " " + str(b) + " " + str(n) + "\n")              
+        file.write(str(j+1) + " " + str(h) + " " + str(b) + " " + str(n) + "\n")     
+
+    for j in range(m):        
+        file.write(str(j+1) + " " + str(r_a[j]) + " " + str(r_b[j]) + "\n")         
 
     for j in range(m):
         n = n_list[j]            
