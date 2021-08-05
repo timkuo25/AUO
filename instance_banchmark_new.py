@@ -71,10 +71,13 @@ for f in file_list:
         due.append(temp_due)
         print(due)
 
-
+    file.write(str(j+1) + " " + str(h) + " " + str(b) + "\n")   
+    
     for j in range(m):
         n = n_list[j] 
-        file.write(str(j+1) + " " + str(h) + " " + str(b) + " " + str(n) + "\n")   
+        file.write(str(n) + " ")  
+
+    file.write("\n") 
 
     for j in range(m):        
         file.write(str(j+1) + " " + str(r_a[j]) + " " + str(r_b[j]) + "\n")           
