@@ -41,6 +41,7 @@ for f in file_list:
     for j in range(m):
         n_list.append(random.randint(5,10))
         n = n_list[j]
+        print(n_list)
         r_a.append(round(random.uniform(0.02, 0.1),2))
         r_b.append(round(random.uniform(0.1, 0.2),2))
 
@@ -48,30 +49,35 @@ for f in file_list:
         for i in range(n):
             temp_pt.append(random.randint(30,90))
         pt.append(temp_pt)
+        print(pt)
 
         temp_job = [0]
         for i in range(n):
             temp_job.append(i+1)
         job.append(temp_job)
+        print(job)
         
         temp_s = [0]
         for i in range(n):
             #idle = np.random.choice([0,20], size=1, p=[0.75,0.25])
             temp_s.append(int(temp_s[i])+int(pt[j][i])+int(np.random.choice([0,20], size=1, p=[0.75,0.25])))
         s.append(temp_s)
+        print(s)
+
 
         temp_due= []
         for i in range(n): 
             temp_due.append(int(s[j][i+1])+int(pt[j][i+1]) + int(np.random.choice([20,b], size=1, p=[1-((1/n)/2),(1/n)/2])))
-        due.append(temp_due)      
-    
+        due.append(temp_due)
+        print(due)
+
 
     for j in range(m):
         n = n_list[j] 
-        file.write(str(j+1) + " " + str(h) + " " + str(b) + " " + str(n) + "\n")     
+        file.write(str(j+1) + " " + str(h) + " " + str(b) + " " + str(n) + "\n")   
 
     for j in range(m):        
-        file.write(str(j+1) + " " + str(r_a[j]) + " " + str(r_b[j]) + "\n")         
+        file.write(str(j+1) + " " + str(r_a[j]) + " " + str(r_b[j]) + "\n")           
 
     for j in range(m):
         n = n_list[j]            
