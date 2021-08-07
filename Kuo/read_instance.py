@@ -8,9 +8,9 @@ cT = 1
 rA = [0]
 rB = [0]
 
-s = []
-p = []
-d = []
+s = [[0]]
+p = [[0]]
+d = [[0]]
 
 file_name = "test.txt"
 with open(file_name, 'r') as f:
@@ -40,4 +40,9 @@ with open(file_name, 'r') as f:
 		p.append(p_i)
 		d.append(d_i)
 
-print(n, rA, rB, s, p, d)		
+print("n = ", n)
+print("rA = ", rA)
+print("rB = ", rB)
+print("s = ", s)
+print("p = ", p)
+print("d = ", d)
