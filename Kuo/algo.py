@@ -1,4 +1,4 @@
-from read_instance import read_instance
+from utils import read_instance
 import time
 
 def algo1_public(m=0, h=0, b=0, n=[], rA=[], rB=[], s=[], p=[], d=[], cD=1, cT=1):
