@@ -5,7 +5,7 @@
 import time
 from gurobipy import *
 
-
+# t is each minute
 def Model_1_solve(ma, h, b, n, rA, rB, s, p, d, cD, cT):
     start = time.time()
     m = Model("research")
@@ -93,7 +93,7 @@ def Model_1_solve(ma, h, b, n, rA, rB, s, p, d, cD, cT):
 
     return opt, model_spend, gap, lowerbound
 
-
+# t is the period
 def Model_2_solve(ma, h, b, n, rA, rB, s, p, d, cD, cT):
     start = time.time()
     m = Model("research")
