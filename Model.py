@@ -6,6 +6,8 @@ import time
 from gurobipy import *
 
 # t is each minute
+
+
 def Model_1_solve(ma, h, b, n, rA, rB, s, p, d, cD, cT):
     start = time.time()
     m = Model("research")
@@ -45,7 +47,6 @@ def Model_1_solve(ma, h, b, n, rA, rB, s, p, d, cD, cT):
         if j != 0:
             for k in range(j, n[i]+1):
                 m.addConstr(Y[i, k] >= X[i, j])
-                print(Y[i, k] >= X[i, j])
 
     for i in range(1, ma + 1):  # There is at most one maintenance on the machine i
         m.addConstr(quicksum(X[i, j] for j in range(n[i] + 1)) <= 1)
@@ -94,6 +95,8 @@ def Model_1_solve(ma, h, b, n, rA, rB, s, p, d, cD, cT):
     return opt, model_spend, gap, lowerbound
 
 # t is the period
+
+
 def Model_2_solve(ma, h, b, n, rA, rB, s, p, d, cD, cT):
     start = time.time()
     m = Model("research")
@@ -133,7 +136,6 @@ def Model_2_solve(ma, h, b, n, rA, rB, s, p, d, cD, cT):
         if j != 0:
             for k in range(j, n[i]+1):
                 m.addConstr(Y[i, k] >= X[i, j])
-                print(Y[i, k] >= X[i, j])
 
     for i in range(1, ma + 1):  # There is at most one maintenance on the machine i
         m.addConstr(quicksum(X[i, j] for j in range(n[i] + 1)) <= 1)
@@ -148,12 +150,10 @@ def Model_2_solve(ma, h, b, n, rA, rB, s, p, d, cD, cT):
         m.addConstr(W[i, j] >= b * quicksum(X[i, k] for k in range(1, j+1)) -
                     quicksum(Y[i, k] * (s[i][k]-s[i][k-1] - p[i][k-1]) for k in range(1, j+1)))
 
-    
     for t in range(T):
         m.addConstr(quicksum(quicksum(A[i, j, t] * X[i, j]
                                       for j in range(n[i]+1)) for i in range(1, ma+1)) <= h)
-    #Difference
-    
+    # Difference
 
     m.update()
     m.setObjective(quicksum(p[i][j] * ((rA[i] * Y[i, j]) + rB[i] * (1 - Y[i, j])) for (i, j) in Y)
