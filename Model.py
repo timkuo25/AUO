@@ -8,7 +8,14 @@ from gurobipy import *
 def Model_eachMin(ma, h, b, n, rA, rB, s, p, d, cD, cT):  # t is each minute
     start = time.time()
     m = Model("research")
-    T = 1000
+    m.setParam('Timelimit', 1200)
+    max = 0
+
+    for i in range(1, ma+1):
+        for j in range(n[i], n[i]+1):
+            if s[i][j]+p[i][j] > max:
+                max = s[i][j]+p[i][j]
+    T = max
 
     # Decision Variables
     X = {}
@@ -74,8 +81,12 @@ def Model_eachMin(ma, h, b, n, rA, rB, s, p, d, cD, cT):  # t is each minute
     m.setObjective(quicksum(p[i][j] * ((rA[i] * Y[i, j]) + rB[i] * (1 - Y[i, j])) for (i, j) in Y)
                    + quicksum(Z[i, j] for (i, j) in Z), GRB.MINIMIZE)
     m.Params.LogToConsole = 0
-    m.setParam('Timelimit', 1200)
+
     m.optimize()
+    xx = []
+    for (i, j) in X:
+        if X[i, j].X == 1:
+            xx.append((i, j))
 
     # Output
     if m.status == 2:
@@ -95,11 +106,11 @@ def Model_eachMin(ma, h, b, n, rA, rB, s, p, d, cD, cT):  # t is each minute
 
 def Model_period(ma, h, b, n, rA, rB, s, p, d, cD, cT):  # t is the period
     start = time.time()
-    m = Model("research")
 
     # Starting time preprocessing
     ss = {}  # Updated starting time
     TT = []  # T set
+
     for i in range(1, ma+1):  # update the starting time if there is the idle time
         for j in range(n[i], 0, -1):
             if s[i][j-1] + p[i][j-1] != s[i][j]:
@@ -129,6 +140,9 @@ def Model_period(ma, h, b, n, rA, rB, s, p, d, cD, cT):  # t is the period
                     break
             if valid == 0:
                 ra[i, j] = (TT.index(ss[i, j]), len(TT)-1)
+
+    m = Model("research")
+    m.setParam('Timelimit', 1200)
 
     # Decision Variables
     X = {}
@@ -194,7 +208,6 @@ def Model_period(ma, h, b, n, rA, rB, s, p, d, cD, cT):  # t is the period
     m.setObjective(quicksum(p[i][j] * ((rA[i] * Y[i, j]) + rB[i] * (1 - Y[i, j])) for (i, j) in Y)
                    + quicksum(Z[i, j] for (i, j) in Z), GRB.MINIMIZE)
     m.Params.LogToConsole = 0
-    m.setParam('Timelimit', 1200)
     m.optimize()
 
     # Output
