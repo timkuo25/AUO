@@ -83,10 +83,6 @@ def Model_eachMin(ma, h, b, n, rA, rB, s, p, d, cD, cT):  # t is each minute
     m.Params.LogToConsole = 0
 
     m.optimize()
-    xx = []
-    for (i, j) in X:
-        if X[i, j].X == 1:
-            xx.append((i, j))
 
     # Output
     if m.status == 2:
