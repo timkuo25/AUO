@@ -1,11 +1,21 @@
-from algo import algo1
-from utils import visualizer, feasibility_checker, read_solution
+from algo import algo, algo_test
+from utils import visualize, read_solution, read_instance
 
-#opt, running_time = algo1("test.txt")
+'''
+inst = read_instance("m_6_h_3_n_max_15_1.txt", True)
+sol = algo(inst, "first_combinations")
 
-#visualizer(s, p, b, sol)
+#visualize(sol)
+# print(sol, opt)
 
-#print(feasibility_checker(s, p, b, sol, h))
 
-s, p, b, h, opt, sol = read_solution('test.txt')
-print(s, p, b, h, opt, sol)
+sol = read_solution('solution_test.txt')
+
+visualize(sol)
+'''
+
+obj, time = algo_test('m_6_h_3_n_max_15_1.txt', 'first_combinations')
+print(obj, time)
+
+obj, time = algo_test('m_6_h_3_n_max_15_1.txt', 'nth_combinations', 3)
+print(obj, time)

@@ -1,13 +1,36 @@
 import matplotlib.pyplot as plt
 import ast
 
+class Instance:
+	def __init__(self, m, h, b, n, rA, rB, s, p, d, cD, cT):
+		self.m = m
+		self.h = h
+		self.b = b
+		self.n = n
+		self.rA = rA
+		self.rB = rB
+		self.s = s
+		self.p = p
+		self.d = d
+		self.cD = cD
+		self.cT = cT
+	
+class Solution:
+	def __init__(self, s, p, b, sol, obj, h):
+		self.s = s
+		self.p = p
+		self.b = b
+		self.sol = sol
+		self.obj = obj
+		self.h = h
+
 '''
 Read instance .txt file to get the parameters
 
 input: file path
-output: all the parameters
+output: instance object
 '''
-def read_instance(file_path):
+def read_instance(file_path, output_obj=False):
 	m = int()
 	h = int()
 	b = int()
@@ -47,14 +70,18 @@ def read_instance(file_path):
 			s.append(s_i)
 			p.append(p_i)
 			d.append(d_i)
-	return m, h, b, n, rA, rB, s, p, d, cD, cT	
-
+	
+	if not output_obj: return m, h, b, n, rA, rB, s, p, d, cD, cT
+	
+	inst = Instance(m, h, b, n, rA, rB, s, p, d, cD, cT)
+	return inst
+	
 '''
 Read solution .txt file to get the parameters and solutions
 (1 solution only)
 
 input: .txt file path (6 lines expected)
-output: s, p, b, h, opt, sol
+output: solution object
 '''
 def read_solution(file_path):
 	with open(file_path, 'r') as f:
@@ -62,21 +89,29 @@ def read_solution(file_path):
 		p = ast.literal_eval(f.readline())
 		b = ast.literal_eval(f.readline())
 		h = ast.literal_eval(f.readline())
-		opt = ast.literal_eval(f.readline())
+		obj = ast.literal_eval(f.readline())
 		sol = ast.literal_eval(f.readline())
-	return s, p, b, h, opt, sol
-	
-'''
-Plot a solution
+		
+	return Solution(s, p, b, sol, obj, h)
 
-input: s, p, b, sol
 '''
-def visualizer(s, p, b, sol):
-	m = len(s) - 1
+Check solution feasibility
+
+input: s, p, b, sol, h
+output: True (feasible)/ False (infeasible)
+'''
+
+def visualize(inst):
+	s = inst.s
+	p = inst.p
+	b = inst.b
+	sol = list(inst.sol)
 	
+	m = len(s) - 1
+
 	fig, gnt = plt.subplots()
 	gnt.set_ylim(0, 5*(m + 1)) 
-	gnt.set_xlim(0, 500)
+	gnt.set_xlim(0, 1000)
 	gnt.set_xlabel('Time') 
 	gnt.set_ylabel('Machine') 
 	gnt.set_yticks([5 * i for i in range(1, m + 1)])
@@ -108,20 +143,10 @@ def visualizer(s, p, b, sol):
 				cur += p[i][j]		
 	
 	gnt.grid(True)
+	plt.savefig('schedule.png')
 	plt.show()
 
-'''
-Check solution feasibility
-
-input: s, p, b, sol, h
-output: True (feasible)/ False (infeasible)
-'''
-def feasibility_checker(s, p, b, sol, h):
-	#s, p shape check
-	if len(s) != len(p): return False
-	for i in range(len(s)):
-		if len(s[i]) != len(p[i]): return False
-
+def feasible(s, p, b, sol, h):
 	# h constraint
 	if len(sol) != 0:
 		load_dict = {}
@@ -133,7 +158,11 @@ def feasibility_checker(s, p, b, sol, h):
 			for j in range(i, i + 60):
 				if j not in load_dict:
 					load_dict[j] = 1
-				else: load_dict += 1
+				else: load_dict[j] += 1
 		if sorted(list(load_dict.values()), reverse=True)[0] > h: return False
 	
 	return True
+	
+def machine_not_duplicate(x):
+	machines = [i[0] for i in x]
+	return len(machines) == len(set(machines))
