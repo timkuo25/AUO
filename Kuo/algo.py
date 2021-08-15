@@ -17,10 +17,11 @@ def algo(inst, mode="first_combinations", nth_best=2):
 	
 	#Parameter manipulation
 	#b = 60
-	#cD = 3.5
+	cD = 3.8
 	#cT = 1
 	
 	sol = []
+	collision = []
 	sol_value_dict = {}
 	cost = [[0], [0]]
 	obj = float()
@@ -68,8 +69,11 @@ def algo(inst, mode="first_combinations", nth_best=2):
 		if candidate != None:
 			sol_value_dict[candidate] = obj
 			sol.append(candidate)
-
-	if feasible(s, p, b, sol, h):
+	
+	fsb, collision = feasible(s, p, b, sol, h)
+	
+	if fsb:
+		obj = sum(cost[1])
 		solution = Solution(s, p, b, sol, obj, h)
 		return solution
 	
@@ -85,7 +89,8 @@ def algo(inst, mode="first_combinations", nth_best=2):
 		best_sol = []
 		for comb in all_comb:
 			sol = comb
-			if feasible(s, p, b, sol, h):
+			fsb, collision = feasible(s, p, b, sol, h)
+			if fsb:
 				# cost_none
 				sol_cost = sum(cost[0])
 				for i in sol:
@@ -98,7 +103,7 @@ def algo(inst, mode="first_combinations", nth_best=2):
 		solution = Solution(s, p, b, best_sol, best_obj, h)
 		return solution
 		
-	if mode == "nth_combinations":
+	elif mode == "nth_combinations":
 		sol_left = list(sol)
 		for _ in range(1, nth_best):
 			sol_round_n = []
@@ -162,7 +167,8 @@ def algo(inst, mode="first_combinations", nth_best=2):
 		best_sol = []
 		for comb in all_comb:
 			sol = comb
-			if feasible(s, p, b, sol, h):
+			fsb, collision = feasible(s, p, b, sol, h)
+			if fsb:
 				# cost_none
 				sol_cost = sum(cost[0])
 				for i in sol:
@@ -174,6 +180,67 @@ def algo(inst, mode="first_combinations", nth_best=2):
 		
 		solution = Solution(s, p, b, best_sol, best_obj, h)
 		return solution
+		
+	elif mode == "strategic_idle":
+		new_s = list(s)
+		shifted_s = list(s)
+		while not fsb:
+			coll_finish_time_list = [new_s[i[0]][i[1] - 1] + b for i in collision]
+			
+			latest = max(coll_finish_time_list)
+			second_latest = sorted(coll_finish_time_list)[1]
+			
+			latest_machine = [collision[i][0] for i,val in enumerate(coll_finish_time_list) if val==latest]
+			
+			move_to_sec = []
+			if len(latest_machine) != len(collision):
+				move_to_sec = latest_machine
+			
+			# calculate cost and decide which to shift
+			best_cost = float('inf')
+			best_machine_to_shift = None
+			for i, j in collision:
+				s_to_shift = list(s[i])
+				cur = 0
+				for k in range(len(s_to_shift)):
+					if k == j:
+						if i in move_to_sec:
+							cur = second_latest + b
+						else:
+							cur = latest + b
+					s_to_shift[k] = cur
+					cur += p[i][k]
+					
+					if k == len(s_to_shift) - 1: break
+					if cur < s[i][k + 1]:
+						cur = s[i][k + 1]
+					
+				shifted_s[i] = list(s_to_shift)
+				
+				# defect cost
+				c_pick = rB[i] * sum(p[i][:j]) + rA[i] * sum(p[i][j:])
+				# tardiness
+				tardiness = 0
+				for k in range(1, n[i] + 1):
+					tardiness += max(0, shifted_s[i][k] + p[i][k] - d[i][k])
+				c_pick += cT * tardiness
+				
+				if c_pick < best_cost:
+					best_cost = c_pick
+					best_machine_to_shift = i
+			
+			print(best_cost, best_machine_to_shift)
+			
+			# move and renew new_s
+			
+			
+			# check feasibility
+			'''
+			fsb, collision = feasible(s, p, b, sol, h)
+			if fsb:
+			'''
+			
+			break
 		
 # 給雪燕的，只輸出opt和running time	
 def algo_test(instance_path, mode="first_combinations", nth_best=2):

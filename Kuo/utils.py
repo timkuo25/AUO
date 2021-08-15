@@ -147,21 +147,32 @@ def visualize(inst):
 	plt.show()
 
 def feasible(s, p, b, sol, h):
-	# h constraint
 	if len(sol) != 0:
 		load_dict = {}
+		machine_occupy_dict = {}
 		maintenance_starts = []
 		for i in sol:
 			maintenance_starts.append((s[i[0]][i[1] - 1]))
-			
-		for i in maintenance_starts:
-			for j in range(i, i + 60):
+		
+		
+		
+		for i in range(len(sol)):
+			for j in range(maintenance_starts[i], maintenance_starts[i] + 60):
 				if j not in load_dict:
 					load_dict[j] = 1
 				else: load_dict[j] += 1
-		if sorted(list(load_dict.values()), reverse=True)[0] > h: return False
-	
-	return True
+				
+				if j not in machine_occupy_dict:
+					machine_occupy_dict[j] = [sol[i]]
+				else:
+					machine_occupy_dict[j].append(sol[i])
+
+		if sorted(list(load_dict.values()), reverse=True)[0] > h:
+			for i in sorted(load_dict.items(), key=lambda x: x[0]):
+				if i[1] > h: return False, machine_occupy_dict[i[0]]
+
+	return True, []
+		
 	
 def machine_not_duplicate(x):
 	machines = [i[0] for i in x]
