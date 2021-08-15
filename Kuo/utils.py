@@ -154,10 +154,8 @@ def feasible(s, p, b, sol, h):
 		for i in sol:
 			maintenance_starts.append((s[i[0]][i[1] - 1]))
 		
-		
-		
 		for i in range(len(sol)):
-			for j in range(maintenance_starts[i], maintenance_starts[i] + 60):
+			for j in range(maintenance_starts[i], maintenance_starts[i] + b):
 				if j not in load_dict:
 					load_dict[j] = 1
 				else: load_dict[j] += 1
@@ -172,8 +170,20 @@ def feasible(s, p, b, sol, h):
 				if i[1] > h: return False, machine_occupy_dict[i[0]]
 
 	return True, []
-		
+
+def feasible_result(result):
+	sol = []
+	load_dict = {}
+	machine_occupy_dict = {}
 	
+	
+	for i in range(len(result)):
+		for j in range(len(result[i])):
+			if result[i][j][2]: sol.append((i + 1, j + 1, result[i][j][0], result[i][j][1]))
+	
+	for element in sol:
+		for i in range()
+	print(sol)
 def machine_not_duplicate(x):
 	machines = [i[0] for i in x]
 	return len(machines) == len(set(machines))
