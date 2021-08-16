@@ -16,14 +16,17 @@ class Instance:
 		self.cT = cT
 	
 class Solution:
-	def __init__(self, s, p, b, sol, obj, h):
+	def __init__(self, s, p, b, sol, obj, obj_none, h, result_no_maintenance, result=[], d=[]):
 		self.s = s
 		self.p = p
 		self.b = b
 		self.sol = sol
 		self.obj = obj
+		self.obj_none = obj_none
 		self.h = h
-
+		self.result_no_maintenance = result_no_maintenance
+		self.result = result
+		self.d = d
 '''
 Read instance .txt file to get the parameters
 
@@ -93,56 +96,117 @@ def read_solution(file_path):
 		sol = ast.literal_eval(f.readline())
 		
 	return Solution(s, p, b, sol, obj, h)
-
-'''
-Check solution feasibility
-
-input: s, p, b, sol, h
-output: True (feasible)/ False (infeasible)
-'''
-
+	
 def visualize(inst):
 	s = inst.s
 	p = inst.p
 	b = inst.b
 	sol = list(inst.sol)
+	result_no_maintenance = inst.result_no_maintenance
+	result = inst.result
 	
 	m = len(s) - 1
 
-	fig, gnt = plt.subplots()
-	gnt.set_ylim(0, 5*(m + 1)) 
-	gnt.set_xlim(0, 1000)
-	gnt.set_xlabel('Time') 
-	gnt.set_ylabel('Machine') 
-	gnt.set_yticks([5 * i for i in range(1, m + 1)])
-	gnt.set_yticklabels(['M' + str(i) for i in range(m, 0, -1)]) 
+	fig, gnt = plt.subplots(1, 2)
+	gnt[0].set_ylim(0, 5*(m + 1)) 
+	gnt[0].set_xlim(0, 1000)
+	gnt[0].set_xlabel('Time') 
+	gnt[0].set_ylabel('No maintenance') 
+	gnt[0].set_yticks([5 * i for i in range(1, m + 1)])
+	gnt[0].set_yticklabels(['M' + str(i) for i in range(m, 0, -1)])
+	gnt[0].title.set_text('obj = ' + str(inst.obj_none))
 	
-	for i in range(1, m + 1):
-		maintenance = False
-		if len(sol) != 0 and sol[0][0] == i:
-			maintenance = True
+	for i in range(m):
+		color = (0.078, 0.73, 0.1, 1)
+		for j in range(len(result_no_maintenance[i])):
+			if result_no_maintenance[i][j][2]: color = "pink"
+			elif color == (0.078, 0.73, 0.1, 1): color = (0.078, 0.73, 0.1, 0.5)
+			elif color == (0.078, 0.73, 0.1, 0.5): color = (0.078, 0.73, 0.1, 1)
+			gnt[0].broken_barh([(result_no_maintenance[i][j][0], result_no_maintenance[i][j][1] - result_no_maintenance[i][j][0])], (5 * (m - i - 1) + 4, 2), facecolors=color)
+	
+	gnt[0].grid(True)
+	
+	if (len(result)) == 0:
+		sol = list(inst.sol)
+		gnt[1].set_ylim(0, 5*(m + 1)) 
+		gnt[1].set_xlim(0, 1000)
+		gnt[1].set_xlabel('Time') 
+		gnt[1].set_ylabel('Suggested Maintenance') 
+		gnt[1].set_yticks([5 * i for i in range(1, m + 1)])
+		gnt[1].set_yticklabels(['M' + str(i) for i in range(m, 0, -1)])
+		gnt[1].title.set_text('obj = ' + str(inst.obj))
 		
-		if not maintenance:
-			gnt.broken_barh([(s[i][j], p[i][j]) for j in range(1, len(s[i]))], (5 * (m - i) + 3, 4), facecolors =('green')) 
-		
-		else:
-			cur = 0
-			maintained = False
-			for j in range(1, len(s[i])):
-				if not maintained:
-					if j == sol[0][1]:
-						gnt.broken_barh([(cur, b)], (5 * (m - i) + 3, 4), facecolors =('pink'))
-						cur += b
-						sol.pop(0)
-						maintained = True
-				
-				if cur < s[i][j]:
-					cur = s[i][j]
+		for i in range(1, m + 1):
+			maintenance = False
+			if len(sol) != 0 and sol[0][0] == i:
+				maintenance = True
+			
+			if not maintenance:
+				color = (0.078, 0.73, 0.1, 1)
+				for j in range(1, len(s[i])):
+					if color == (0.078, 0.73, 0.1, 0.5): color = (0.078, 0.73, 0.1, 1)
+					elif color == (0.078, 0.73, 0.1, 1): color = (0.078, 0.73, 0.1, 0.5)
+					gnt[1].broken_barh([(s[i][j], p[i][j])], (5 * (m - i) + 4, 2), facecolors=color) 
+			
+			else:
+				cur = 0
+				maintained = False
+				color = (0.078, 0.73, 0.1, 1)
+				for j in range(1, len(s[i])):
+					if not maintained:
+						if j == sol[0][1]:
+							gnt[1].broken_barh([(cur, b)], (5 * (m - i) + 4, 2), facecolors='pink')
+							cur += b
+							sol.pop(0)
+							maintained = True
 					
-				gnt.broken_barh([(cur, p[i][j])], (5 * (m - i) + 3, 4), facecolors =('green'))
-				cur += p[i][j]		
+					if cur < s[i][j]:
+						cur = s[i][j]
+					
+					if color == (0.078, 0.73, 0.1, 0.5): color = (0.078, 0.73, 0.1, 1)
+					elif color == (0.078, 0.73, 0.1, 1): color = (0.078, 0.73, 0.1, 0.5)
+					gnt[1].broken_barh([(cur, p[i][j])], (5 * (m - i) + 4, 2), facecolors=color)
+					cur += p[i][j]		
+		
+		gnt[1].grid(True)
+
+	else:
+		gnt[1].set_ylim(0, 5*(m + 1)) 
+		gnt[1].set_xlim(0, 1000)
+		gnt[1].set_xlabel('Time') 
+		gnt[1].set_ylabel('Suggested maintenance') 
+		gnt[1].set_yticks([5 * i for i in range(1, m + 1)])
+		gnt[1].set_yticklabels(['M' + str(i) for i in range(m, 0, -1)])
+		gnt[1].title.set_text('obj = ' + str(inst.obj))
+		
+		for i in range(m):
+			color = (0.078, 0.73, 0.1, 1)
+			for j in range(len(result[i])):
+				if result[i][j][2]: color = "pink"
+				elif color == (0.078, 0.73, 0.1, 1): color = (0.078, 0.73, 0.1, 0.5)
+				elif color == (0.078, 0.73, 0.1, 0.5): color = (0.078, 0.73, 0.1, 1)
+				elif color == "pink": color = (0.078, 0.73, 0.1, 0.5)
+				gnt[1].broken_barh([(result[i][j][0], result[i][j][1] - result[i][j][0])], (5 * (m - i - 1) + 4, 2), facecolors=color)
+		gnt[1].grid(True)
+		
+	if len(inst.d) != 0:
+		for i in range(1, m + 1):
+			for j in range(1, len(inst.d[i])):
+				gnt[0].annotate("d" + str(j), (inst.d[i][j], 5 * (m - i) + 6),
+							xytext=(inst.d[i][j], 5 * (m - i) + 8), textcoords='data',
+							arrowprops=dict(facecolor='black', arrowstyle="->",
+											connectionstyle="arc,rad=10"),
+							fontsize=10,
+							horizontalalignment='right', verticalalignment='top')
+				gnt[1].annotate("d" + str(j), (inst.d[i][j], 5 * (m - i) + 6),
+							xytext=(inst.d[i][j], 5 * (m - i) + 8), textcoords='data',
+							arrowprops=dict(facecolor='black', arrowstyle="->",
+											connectionstyle="arc,rad=10"),
+							fontsize=10,
+							horizontalalignment='right', verticalalignment='top')
 	
-	gnt.grid(True)
+	
+	
 	plt.savefig('schedule.png')
 	plt.show()
 
@@ -171,19 +235,32 @@ def feasible(s, p, b, sol, h):
 
 	return True, []
 
-def feasible_result(result):
+def feasible_result(result, h):
 	sol = []
 	load_dict = {}
 	machine_occupy_dict = {}
-	
 	
 	for i in range(len(result)):
 		for j in range(len(result[i])):
 			if result[i][j][2]: sol.append((i + 1, j + 1, result[i][j][0], result[i][j][1]))
 	
-	for element in sol:
-		for i in range()
-	print(sol)
+	for i in sol:
+		for j in range(i[2], i[3]):
+			if j not in load_dict:
+				load_dict[j] = 1
+			else: load_dict[j] += 1
+			
+			if j not in machine_occupy_dict:
+				machine_occupy_dict[j] = [(i[0], i[1])]
+			else:
+				machine_occupy_dict[j].append((i[0], i[1]))
+				
+	if sorted(list(load_dict.values()), reverse=True)[0] > h:
+		for i in sorted(load_dict.items(), key=lambda x: x[0]):
+			if i[1] > h: return False, machine_occupy_dict[i[0]]
+	
+	return True, []
+		
 def machine_not_duplicate(x):
 	machines = [i[0] for i in x]
 	return len(machines) == len(set(machines))
