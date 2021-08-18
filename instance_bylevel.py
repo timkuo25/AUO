@@ -126,4 +126,3 @@ instance_generator(benchmark[0],h_list[1],benchmark[2],"h",marktype[1])
 instance_generator(benchmark[0],benchmark[1],n_list[0],"n_max",marktype[0])
 instance_generator(benchmark[0],benchmark[1],n_list[1],"n_max",marktype[1])
 
-
