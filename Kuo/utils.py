@@ -16,15 +16,13 @@ class Instance:
 		self.cT = cT
 	
 class Solution:
-	def __init__(self, s, p, b, sol, obj, obj_none, h, result_no_maintenance, result=[], d=[]):
+	def __init__(self, s, p, b, sol, obj, h, result=[], d=[]):
 		self.s = s
 		self.p = p
 		self.b = b
 		self.sol = sol
 		self.obj = obj
-		self.obj_none = obj_none
 		self.h = h
-		self.result_no_maintenance = result_no_maintenance
 		self.result = result
 		self.d = d
 '''
@@ -209,31 +207,98 @@ def visualize(inst):
 	
 	plt.savefig('schedule.png')
 	plt.show()
-
-def feasible(s, p, b, sol, h):
-	if len(sol) != 0:
-		load_dict = {}
-		machine_occupy_dict = {}
-		maintenance_starts = []
-		for i in sol:
-			maintenance_starts.append((s[i[0]][i[1] - 1]))
+	
+def generate_no_maintenance_result(inst):
+	s = inst.s
+	p = inst.p
+	b = inst.b
+	return [[(s[i][j], s[i][j] + p[i][j], False) for j in range(1, len(s[i]))] for i in range(1, len(s))]
+	
+def generate_result(s, p, b, sol):	
+	m = len(sol)
+	result = []
+	
+	for i in range(m):
+		target = sol[i]
+		n_i = len(s[i + 1]) - 1
+		result_i = []
 		
-		for i in range(len(sol)):
-			for j in range(maintenance_starts[i], maintenance_starts[i] + b):
-				if j not in load_dict:
-					load_dict[j] = 1
-				else: load_dict[j] += 1
-				
-				if j not in machine_occupy_dict:
-					machine_occupy_dict[j] = [sol[i]]
+		cur = 0
+		for j in range(1, n_i + 1):
+			if target == j:
+				result_i.append((cur, cur + b, True))
+				cur += b
+
+			if cur < s[i + 1][j]: cur = s[i + 1][j]
+			result_i.append((cur, cur + p[i + 1][j], False))
+			cur += p[i + 1][j]
+		
+		result.append(result_i)
+	
+	return result
+
+def visualize_result(result, obj, d = []):
+	m = len(result)
+
+	fig, gnt = plt.subplots(1, 2)
+	gnt[0].set_ylim(0, 5*(m + 1)) 
+	gnt[0].set_xlim(0, 1000)
+	gnt[0].set_xlabel('Time') 
+	gnt[0].set_ylabel('Result') 
+	gnt[0].set_yticks([5 * i for i in range(1, m + 1)])
+	gnt[0].set_yticklabels(['M' + str(i) for i in range(m, 0, -1)])
+	gnt[0].title.set_text('obj = ' + str(obj))
+	
+	for i in range(m):
+		color = (0.078, 0.73, 0.1, 1)
+		for j in range(len(result[i])):
+			if result[i][j][2]: color = "pink"
+			elif color == (0.078, 0.73, 0.1, 1): color = (0.078, 0.73, 0.1, 0.5)
+			elif color == (0.078, 0.73, 0.1, 0.5): color = (0.078, 0.73, 0.1, 1)
+			elif color == "pink": color = (0.078, 0.73, 0.1, 0.5)
+			gnt[0].broken_barh([(result[i][j][0], result[i][j][1] - result[i][j][0])], (5 * (m - i - 1) + 4, 2), facecolors=color)
+	
+	gnt[0].grid(True)
+	
+	
+	if len(d) != 0:
+		for i in range(1, m + 1):
+			for j in range(1, len(d[i])):
+				gnt[0].annotate("d" + str(j), (d[i][j], 5 * (m - i) + 6),
+							xytext=(d[i][j], 5 * (m - i) + 8), textcoords='data',
+							arrowprops=dict(facecolor='black', arrowstyle="->",
+											connectionstyle="arc,rad=10"),
+							fontsize=10,
+							horizontalalignment='right', verticalalignment='top')
+				gnt[1].annotate("d" + str(j), (d[i][j], 5 * (m - i) + 6),
+							xytext=(d[i][j], 5 * (m - i) + 8), textcoords='data',
+							arrowprops=dict(facecolor='black', arrowstyle="->",
+											connectionstyle="arc,rad=10"),
+							fontsize=10,
+							horizontalalignment='right', verticalalignment='top')
+	
+	plt.savefig('schedule.png')
+	plt.show()
+
+def calculate_result_cost(result, d, rA, rB, cD, cT):
+	defect_cost = 0
+	tardiness_cost = 0
+	
+	for i in range(len(result)):
+		maintained = False
+		j = 0
+		for item in result[i]:
+			if not item[2]:
+				tardiness_cost += max(0, item[1] - d[i + 1][j + 1])
+				if maintained:
+					defect_cost += rA[i + 1] * (item[1] - item[0])
 				else:
-					machine_occupy_dict[j].append(sol[i])
-
-		if sorted(list(load_dict.values()), reverse=True)[0] > h:
-			for i in sorted(load_dict.items(), key=lambda x: x[0]):
-				if i[1] > h: return False, machine_occupy_dict[i[0]]
-
-	return True, []
+					defect_cost += rB[i + 1] * (item[1] - item[0])
+				j += 1
+			else:
+				maintained = True
+				
+	return cD * defect_cost + cT * tardiness_cost
 
 def feasible_result(result, h):
 	sol = []
@@ -254,13 +319,12 @@ def feasible_result(result, h):
 				machine_occupy_dict[j] = [(i[0], i[1])]
 			else:
 				machine_occupy_dict[j].append((i[0], i[1]))
-				
+	
+	if len(sorted(list(load_dict.values()), reverse=True)) == 0: return True, []
+	
 	if sorted(list(load_dict.values()), reverse=True)[0] > h:
 		for i in sorted(load_dict.items(), key=lambda x: x[0]):
 			if i[1] > h: return False, machine_occupy_dict[i[0]]
 	
 	return True, []
-		
-def machine_not_duplicate(x):
-	machines = [i[0] for i in x]
-	return len(machines) == len(set(machines))
+	
