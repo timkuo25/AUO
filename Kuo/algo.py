@@ -18,9 +18,9 @@ def algo(inst, mode="first_combinations", nth_best=2):
 	
 	#Parameter manipulation
 	#b = 60
-	cD = 10
+	#cD = 10
 	#cT = 1
-	h = 2
+	#h = 2
 	
 	collision = []
 	cost = []
