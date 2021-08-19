@@ -68,7 +68,6 @@ def Model_wait(ma, h, b, n, rA, rB, s, p, d, cD, cT):  # t is each minute
                     quicksum(Y[i, k] * (s[i][k]-s[i][k-1] - p[i][k-1]) for k in range(1, j+1)) +
                     quicksum(X[i, k]*U[i, k] for k in range(1, j+1)))
 
-    eps = 0.001
     M = 0
     for i in range(1, ma+1):
         for j in range(1, n[i]+1):
@@ -91,10 +90,6 @@ def Model_wait(ma, h, b, n, rA, rB, s, p, d, cD, cT):  # t is each minute
 
     for t in range(T):
         m.addConstr(quicksum(a[i, t] for i in range(1, ma+1)) <= h)
-
-    for (i, j) in U:
-        m.addConstr(U[i, j] <= M * X[i, j])
-        m.addConstr(U[i, j] >= -M * X[i, j])
 
     m.update()
     m.setObjective(cD * quicksum(p[i][j] * ((rA[i] * Y[i, j]) + rB[i] * (1 - Y[i, j])) for (i, j) in Y)
