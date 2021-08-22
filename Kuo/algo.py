@@ -250,7 +250,7 @@ def algo(inst, mode="first_combinations", nth_best=2):
 def algo_test(instance_path, mode="first_combinations", nth_best=2):
 	inst = read_instance(instance_path, True)
 	start_time = time.time()
-	sol = algo(inst, mode)
+	sol = algo(inst, mode, nth_best, nth_best)
 	running_time = time.time() - start_time
 	
 	return sol.obj, running_time
