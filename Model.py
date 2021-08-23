@@ -85,8 +85,6 @@ def Model_wait(ma, h, b, n, rA, rB, s, p, d, cD, cT):  # t is each minute
     for i in range(1, ma+1):
         for t in range(T):
             m.addConstr(a_1[i, t] + a_2[i, t] - 1 <= a[i, t])
-            m.addConstr(a[i, t] <= a_1[i, t])
-            m.addConstr(a[i, t] <= a_2[i, t])
 
     for t in range(T):
         m.addConstr(quicksum(a[i, t] for i in range(1, ma+1)) <= h)
