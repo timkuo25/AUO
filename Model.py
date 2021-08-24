@@ -23,6 +23,7 @@ def Model_wait(ma, h, b, n, rA, rB, s, p, d, cD, cT):  # t is each minute
     a_1 = {}
     a_2 = {}
     U = {}
+    G = {}
 
     for i in range(1, ma+1):
         for j in range(n[i]+1):
@@ -44,6 +45,9 @@ def Model_wait(ma, h, b, n, rA, rB, s, p, d, cD, cT):  # t is each minute
             a[i, t] = m.addVar(vtype="B", name="a(%s,%s)" % (i, t))
             a_1[i, t] = m.addVar(vtype="B", name="a_1(%s,%s)" % (i, t))
             a_2[i, t] = m.addVar(vtype="B", name="a_2(%s,%s)" % (i, t))
+    for i in range(1, ma+1):
+        for j in range(n[i]+1):
+            G[i, j] = m.addVar(vtype="I", name="U(%s,%s)" % (i, j))
 
     # Constraints
     for i in range(1, ma+1):
@@ -66,7 +70,7 @@ def Model_wait(ma, h, b, n, rA, rB, s, p, d, cD, cT):  # t is each minute
     for (i, j) in W:
         m.addConstr(W[i, j] >= b * quicksum(X[i, k] for k in range(1, j+1)) -
                     quicksum(Y[i, k] * (s[i][k]-s[i][k-1] - p[i][k-1]) for k in range(1, j+1)) +
-                    quicksum(X[i, k]*U[i, k] for k in range(1, j+1)))
+                    quicksum(G[i, k] for k in range(1, j+1)))
 
     M = 0
     for i in range(1, ma+1):
@@ -88,6 +92,16 @@ def Model_wait(ma, h, b, n, rA, rB, s, p, d, cD, cT):  # t is each minute
 
     for t in range(T):
         m.addConstr(quicksum(a[i, t] for i in range(1, ma+1)) <= h)
+
+    for (i, j) in U:
+        m.addConstr(U[i, j] <= M * X[i, j])
+        m.addConstr(U[i, j] >= -M * X[i, j])
+
+    for (i, j) in G:
+        m.addConstr(U[i, j] - M*(1-X[i, j]) <= G[i, j])
+        m.addConstr(G[i, j] <= U[i, j] + M*(1-X[i, j]))
+        m.addConstr(-M*X[i, j] <= G[i, j])
+        m.addConstr(G[i, j] <= M*X[i, j])
 
     m.update()
     m.setObjective(cD * quicksum(p[i][j] * ((rA[i] * Y[i, j]) + rB[i] * (1 - Y[i, j])) for (i, j) in Y)
