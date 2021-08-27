@@ -95,119 +95,6 @@ def read_solution(file_path):
 		
 	return Solution(s, p, b, sol, obj, h)
 	
-def visualize(inst):
-	s = inst.s
-	p = inst.p
-	b = inst.b
-	sol = list(inst.sol)
-	result_no_maintenance = inst.result_no_maintenance
-	result = inst.result
-	
-	m = len(s) - 1
-
-	fig, gnt = plt.subplots(1, 2)
-	gnt[0].set_ylim(0, 5*(m + 1)) 
-	gnt[0].set_xlim(0, 1000)
-	gnt[0].set_xlabel('Time') 
-	gnt[0].set_ylabel('No maintenance') 
-	gnt[0].set_yticks([5 * i for i in range(1, m + 1)])
-	gnt[0].set_yticklabels(['M' + str(i) for i in range(m, 0, -1)])
-	gnt[0].title.set_text('obj = ' + str(inst.obj_none))
-	
-	for i in range(m):
-		color = (0.078, 0.73, 0.1, 1)
-		for j in range(len(result_no_maintenance[i])):
-			if result_no_maintenance[i][j][2]: color = "pink"
-			elif color == (0.078, 0.73, 0.1, 1): color = (0.078, 0.73, 0.1, 0.5)
-			elif color == (0.078, 0.73, 0.1, 0.5): color = (0.078, 0.73, 0.1, 1)
-			gnt[0].broken_barh([(result_no_maintenance[i][j][0], result_no_maintenance[i][j][1] - result_no_maintenance[i][j][0])], (5 * (m - i - 1) + 4, 2), facecolors=color)
-	
-	gnt[0].grid(True)
-	
-	if (len(result)) == 0:
-		sol = list(inst.sol)
-		gnt[1].set_ylim(0, 5*(m + 1)) 
-		gnt[1].set_xlim(0, 1000)
-		gnt[1].set_xlabel('Time') 
-		gnt[1].set_ylabel('Suggested Maintenance') 
-		gnt[1].set_yticks([5 * i for i in range(1, m + 1)])
-		gnt[1].set_yticklabels(['M' + str(i) for i in range(m, 0, -1)])
-		gnt[1].title.set_text('obj = ' + str(inst.obj))
-		
-		for i in range(1, m + 1):
-			maintenance = False
-			if len(sol) != 0 and sol[0][0] == i:
-				maintenance = True
-			
-			if not maintenance:
-				color = (0.078, 0.73, 0.1, 1)
-				for j in range(1, len(s[i])):
-					if color == (0.078, 0.73, 0.1, 0.5): color = (0.078, 0.73, 0.1, 1)
-					elif color == (0.078, 0.73, 0.1, 1): color = (0.078, 0.73, 0.1, 0.5)
-					gnt[1].broken_barh([(s[i][j], p[i][j])], (5 * (m - i) + 4, 2), facecolors=color) 
-			
-			else:
-				cur = 0
-				maintained = False
-				color = (0.078, 0.73, 0.1, 1)
-				for j in range(1, len(s[i])):
-					if not maintained:
-						if j == sol[0][1]:
-							gnt[1].broken_barh([(cur, b)], (5 * (m - i) + 4, 2), facecolors='pink')
-							cur += b
-							sol.pop(0)
-							maintained = True
-					
-					if cur < s[i][j]:
-						cur = s[i][j]
-					
-					if color == (0.078, 0.73, 0.1, 0.5): color = (0.078, 0.73, 0.1, 1)
-					elif color == (0.078, 0.73, 0.1, 1): color = (0.078, 0.73, 0.1, 0.5)
-					gnt[1].broken_barh([(cur, p[i][j])], (5 * (m - i) + 4, 2), facecolors=color)
-					cur += p[i][j]		
-		
-		gnt[1].grid(True)
-
-	else:
-		gnt[1].set_ylim(0, 5*(m + 1)) 
-		gnt[1].set_xlim(0, 1000)
-		gnt[1].set_xlabel('Time') 
-		gnt[1].set_ylabel('Suggested maintenance') 
-		gnt[1].set_yticks([5 * i for i in range(1, m + 1)])
-		gnt[1].set_yticklabels(['M' + str(i) for i in range(m, 0, -1)])
-		gnt[1].title.set_text('obj = ' + str(inst.obj))
-		
-		for i in range(m):
-			color = (0.078, 0.73, 0.1, 1)
-			for j in range(len(result[i])):
-				if result[i][j][2]: color = "pink"
-				elif color == (0.078, 0.73, 0.1, 1): color = (0.078, 0.73, 0.1, 0.5)
-				elif color == (0.078, 0.73, 0.1, 0.5): color = (0.078, 0.73, 0.1, 1)
-				elif color == "pink": color = (0.078, 0.73, 0.1, 0.5)
-				gnt[1].broken_barh([(result[i][j][0], result[i][j][1] - result[i][j][0])], (5 * (m - i - 1) + 4, 2), facecolors=color)
-		gnt[1].grid(True)
-		
-	if len(inst.d) != 0:
-		for i in range(1, m + 1):
-			for j in range(1, len(inst.d[i])):
-				gnt[0].annotate("d" + str(j), (inst.d[i][j], 5 * (m - i) + 6),
-							xytext=(inst.d[i][j], 5 * (m - i) + 8), textcoords='data',
-							arrowprops=dict(facecolor='black', arrowstyle="->",
-											connectionstyle="arc,rad=10"),
-							fontsize=10,
-							horizontalalignment='right', verticalalignment='top')
-				gnt[1].annotate("d" + str(j), (inst.d[i][j], 5 * (m - i) + 6),
-							xytext=(inst.d[i][j], 5 * (m - i) + 8), textcoords='data',
-							arrowprops=dict(facecolor='black', arrowstyle="->",
-											connectionstyle="arc,rad=10"),
-							fontsize=10,
-							horizontalalignment='right', verticalalignment='top')
-	
-	
-	
-	plt.savefig('schedule.png')
-	plt.show()
-	
 def generate_no_maintenance_result(inst):
 	s = inst.s
 	p = inst.p
@@ -237,28 +124,30 @@ def generate_result(s, p, b, sol):
 	
 	return result
 
-def visualize_result(result, obj, d = []):
+def visualize_result(result_no_maintenance, obj_no_maintenance, result, obj, d = []):
 	m = len(result)
 
 	fig, gnt = plt.subplots(1, 2)
-	gnt[0].set_ylim(0, 5*(m + 1)) 
-	gnt[0].set_xlim(0, 1000)
-	gnt[0].set_xlabel('Time') 
-	gnt[0].set_ylabel('Result') 
-	gnt[0].set_yticks([5 * i for i in range(1, m + 1)])
-	gnt[0].set_yticklabels(['M' + str(i) for i in range(m, 0, -1)])
-	gnt[0].title.set_text('obj = ' + str(obj))
 	
-	for i in range(m):
-		color = (0.078, 0.73, 0.1, 1)
-		for j in range(len(result[i])):
-			if result[i][j][2]: color = "pink"
-			elif color == (0.078, 0.73, 0.1, 1): color = (0.078, 0.73, 0.1, 0.5)
-			elif color == (0.078, 0.73, 0.1, 0.5): color = (0.078, 0.73, 0.1, 1)
-			elif color == "pink": color = (0.078, 0.73, 0.1, 0.5)
-			gnt[0].broken_barh([(result[i][j][0], result[i][j][1] - result[i][j][0])], (5 * (m - i - 1) + 4, 2), facecolors=color)
-	
-	gnt[0].grid(True)
+	if len(result_no_maintenance) != 0:
+		gnt[0].set_ylim(0, 5*(m + 1)) 
+		gnt[0].set_xlim(0, 1500)
+		gnt[0].set_xlabel('Time') 
+		gnt[0].set_ylabel('Result') 
+		gnt[0].set_yticks([5 * i for i in range(1, m + 1)])
+		gnt[0].set_yticklabels(['M' + str(i) for i in range(m, 0, -1)])
+		gnt[0].title.set_text('obj = ' + str(obj_no_maintenance))
+		
+		for i in range(m):
+			color = (0.078, 0.73, 0.1, 1)
+			for j in range(len(result_no_maintenance[i])):
+				if result_no_maintenance[i][j][2]: color = "pink"
+				elif color == (0.078, 0.73, 0.1, 1): color = (0.078, 0.73, 0.1, 0.5)
+				elif color == (0.078, 0.73, 0.1, 0.5): color = (0.078, 0.73, 0.1, 1)
+				elif color == "pink": color = (0.078, 0.73, 0.1, 0.5)
+				gnt[0].broken_barh([(result_no_maintenance[i][j][0], result_no_maintenance[i][j][1] - result_no_maintenance[i][j][0])], (5 * (m - i - 1) + 4, 2), facecolors=color)
+		
+		gnt[0].grid(True)
 	
 	
 	if len(d) != 0:
@@ -277,7 +166,44 @@ def visualize_result(result, obj, d = []):
 							fontsize=10,
 							horizontalalignment='right', verticalalignment='top')
 	
-	plt.savefig('schedule.png')
+	
+	gnt[1].set_ylim(0, 5*(m + 1)) 
+	gnt[1].set_xlim(0, 1500)
+	gnt[1].set_xlabel('Time') 
+	gnt[1].set_ylabel('Result') 
+	gnt[1].set_yticks([5 * i for i in range(1, m + 1)])
+	gnt[1].set_yticklabels(['M' + str(i) for i in range(m, 0, -1)])
+	gnt[1].title.set_text('obj = ' + str(obj))
+	
+	for i in range(m):
+		color = (0.078, 0.73, 0.1, 1)
+		for j in range(len(result[i])):
+			if result[i][j][2]: color = "pink"
+			elif color == (0.078, 0.73, 0.1, 1): color = (0.078, 0.73, 0.1, 0.5)
+			elif color == (0.078, 0.73, 0.1, 0.5): color = (0.078, 0.73, 0.1, 1)
+			elif color == "pink": color = (0.078, 0.73, 0.1, 0.5)
+			gnt[1].broken_barh([(result[i][j][0], result[i][j][1] - result[i][j][0])], (5 * (m - i - 1) + 4, 2), facecolors=color)
+	
+	gnt[1].grid(True)
+	
+	
+	if len(d) != 0:
+		for i in range(1, m + 1):
+			for j in range(1, len(d[i])):
+				gnt[0].annotate("d" + str(j), (d[i][j], 5 * (m - i) + 6),
+							xytext=(d[i][j], 5 * (m - i) + 8), textcoords='data',
+							arrowprops=dict(facecolor='black', arrowstyle="->",
+											connectionstyle="arc,rad=10"),
+							fontsize=10,
+							horizontalalignment='right', verticalalignment='top')
+				gnt[1].annotate("d" + str(j), (d[i][j], 5 * (m - i) + 6),
+							xytext=(d[i][j], 5 * (m - i) + 8), textcoords='data',
+							arrowprops=dict(facecolor='black', arrowstyle="->",
+											connectionstyle="arc,rad=10"),
+							fontsize=10,
+							horizontalalignment='right', verticalalignment='top')
+	
+	plt.savefig('schedule2.png')
 	plt.show()
 
 def calculate_result_cost(result, d, rA, rB, cD, cT):
