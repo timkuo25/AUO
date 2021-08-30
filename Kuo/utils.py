@@ -2,13 +2,14 @@ import matplotlib.pyplot as plt
 import ast
 
 class Instance:
-	def __init__(self, m, h, b, n, rA, rB, s, p, d, cD, cT):
+	def __init__(self, m, h_bar, n, rA, rB, h, b, s, p, d, cD, cT):
 		self.m = m
-		self.h = h
-		self.b = b
+		self.h_bar = h_bar
 		self.n = n
 		self.rA = rA
 		self.rB = rB
+		self.h = h
+		self.b = b
 		self.s = s
 		self.p = p
 		self.d = d
@@ -33,31 +34,35 @@ output: instance object
 '''
 def read_instance(file_path, output_obj=False):
 	m = int()
-	h = int()
-	b = int()
+	h_bar = int()
 	n = []
 	cD = 1
 	cT = 1
 
 	rA = [0]
 	rB = [0]
-
+	h = [0]
+	b = [0]
+	
 	s = [[0]]
 	p = [[0]]
 	d = [[0]]
+	
 	with open(file_path, 'r') as f:
-		# m, h, b, n
+		# m
 		line = f.readline().split()
-		m, h, b = [int(i) for i in line]
+		m, h_bar = [int(i) for i in line]
 		
 		line = f.readline().split()
 		n = [0] + [int(i) for i in line]
 		
-		# rA, rB
+		# rA, rB, h, b
 		for _ in range(m):
 			line = f.readline().split()
 			rA.append(float(line[1]))
 			rB.append(float(line[2]))
+			h.append(float(line[3]))
+			b.append(float(line[4]))
 
 		for i in range(1, 1 + m):
 			s_i = [0]
@@ -72,9 +77,9 @@ def read_instance(file_path, output_obj=False):
 			p.append(p_i)
 			d.append(d_i)
 	
-	if not output_obj: return m, h, b, n, rA, rB, s, p, d, cD, cT
+	if not output_obj: return m, h_bar, n, rA, rB, h, b, s, p, d, cD, cT
 	
-	inst = Instance(m, h, b, n, rA, rB, s, p, d, cD, cT)
+	inst = Instance(m, h_bar, n, rA, rB, h, b, s, p, d, cD, cT)
 	return inst
 	
 '''
