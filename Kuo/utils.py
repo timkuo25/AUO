@@ -17,13 +17,14 @@ class Instance:
 		self.cT = cT
 	
 class Solution:
-	def __init__(self, s, p, b, sol, obj, h, result=[], d=[]):
+	def __init__(self, s, p, b, sol, obj, h, h_bar, result=[], d=[]):
 		self.s = s
 		self.p = p
 		self.b = b
 		self.sol = sol
 		self.obj = obj
 		self.h = h
+		self.h_bar = h_bar
 		self.result = result
 		self.d = d
 '''
@@ -61,8 +62,8 @@ def read_instance(file_path, output_obj=False):
 			line = f.readline().split()
 			rA.append(float(line[1]))
 			rB.append(float(line[2]))
-			h.append(float(line[3]))
-			b.append(float(line[4]))
+			h.append(int(line[3]))
+			b.append(int(line[4]))
 
 		for i in range(1, 1 + m):
 			s_i = [0]
@@ -110,20 +111,20 @@ def generate_result(s, p, b, sol):
 	m = len(sol)
 	result = []
 	
-	for i in range(m):
-		target = sol[i]
-		n_i = len(s[i + 1]) - 1
+	for i in range(1, m + 1):
+		target = sol[i - 1]
+		n_i = len(s[i]) - 1
 		result_i = []
 		
 		cur = 0
 		for j in range(1, n_i + 1):
 			if target == j:
-				result_i.append((cur, cur + b, True))
-				cur += b
+				result_i.append((cur, cur + b[i], True))
+				cur += b[i]
 
-			if cur < s[i + 1][j]: cur = s[i + 1][j]
-			result_i.append((cur, cur + p[i + 1][j], False))
-			cur += p[i + 1][j]
+			if cur < s[i][j]: cur = s[i][j]
+			result_i.append((cur, cur + p[i][j], False))
+			cur += p[i][j]
 		
 		result.append(result_i)
 	
@@ -231,7 +232,7 @@ def calculate_result_cost(result, d, rA, rB, cD, cT):
 				
 	return cD * defect_cost + cT * tardiness_cost
 
-def feasible_result(result, h):
+def feasible_result(result, h, h_bar):
 	sol = []
 	load_dict = {}
 	machine_occupy_dict = {}
@@ -239,23 +240,24 @@ def feasible_result(result, h):
 	for i in range(len(result)):
 		for j in range(len(result[i])):
 			if result[i][j][2]: sol.append((i + 1, j + 1, result[i][j][0], result[i][j][1]))
-	
+
 	for i in sol:
 		for j in range(i[2], i[3]):
 			if j not in load_dict:
-				load_dict[j] = 1
-			else: load_dict[j] += 1
+				load_dict[j] = h[i[0]]
+			else: load_dict[j] += h[i[0]]
 			
 			if j not in machine_occupy_dict:
 				machine_occupy_dict[j] = [(i[0], i[1])]
 			else:
-				machine_occupy_dict[j].append((i[0], i[1]))
+				machine_occupy_dict[j].append((i[0], i[1]))			
 	
 	if len(sorted(list(load_dict.values()), reverse=True)) == 0: return True, []
 	
-	if sorted(list(load_dict.values()), reverse=True)[0] > h:
+	if sorted(list(load_dict.values()), reverse=True)[0] > h_bar:
 		for i in sorted(load_dict.items(), key=lambda x: x[0]):
-			if i[1] > h: return False, machine_occupy_dict[i[0]]
+			if i[1] > h_bar: return False, machine_occupy_dict[i[0]]
 	
 	return True, []
+	
 	
