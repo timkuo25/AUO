@@ -27,6 +27,7 @@ def algo(inst, mode="first_combinations", nth_best=2):
 	collision = []
 	cost = []
 	first_best_sol = []
+	elim_list = []
 	result_no_maintenance = generate_no_maintenance_result(inst)
 	
 	
@@ -80,6 +81,12 @@ def algo(inst, mode="first_combinations", nth_best=2):
 	
 	fsb, collision = feasible_result(first_best_result, h, h_bar)
 	
+	# list of machines that "no maintenance is the best"
+	count = 1
+	for i in cost:
+		if sorted(list(i.items()), key=lambda x: x[1])[0][0] == 0: elim_list.append(count)
+		count += 1
+	
 	if fsb: return Solution(s, p, b, first_best_sol, first_best_cost, h, h_bar, first_best_result, d)
 	
 	
@@ -109,12 +116,14 @@ def algo(inst, mode="first_combinations", nth_best=2):
 	elif mode == "nth_combinations":
 		list_sorted = [sorted(list(i.items()), key=lambda x: x[1]) for i in cost]
 		list_nth = first_best_sol
-
+		
+		list_nth = [[list_nth[j]] for j in range(len(list_nth))]
+		
 		for i in range(1, nth_best):
-			if i == 1:
-				list_nth = [[list_nth[j]] + [list_sorted[j][i][0]] for j in range(len(list_nth))]
-			else:
-				list_nth = [list_nth[j] + [list_sorted[j][i][0]] for j in range(len(list_nth))]
+			for j in range(len(list_nth)):
+				# eliminate machines that "no maintenance is the best"
+				if j + 1 in elim_list: continue
+				list_nth[j].append(list_sorted[j][i][0])
 			
 			candidates = list(set(product(*list_nth)))
 			
