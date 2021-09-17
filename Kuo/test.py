@@ -3,7 +3,7 @@ from utils import visualize_result, read_solution, read_instance, generate_no_ma
 import itertools
 import pickle
 
-#inst = read_instance("2021_4_18__60_schedule.txt", True)
+
 obj, runtime = algo_test("2021_4_18__60_schedule.txt", "nth_combinations", nth_best=3, time_limit=0.0000000000001)
 
 print(obj)

@@ -122,6 +122,10 @@ def algo(inst, mode="first_combinations", nth_best=2, time_limit=float('inf'), u
 		
 	
 	elif mode == "nth_combinations":
+		sol_so_far = None
+		obj_so_far = None
+		result_so_far = None
+		
 		list_sorted = [sorted(list(i.items()), key=lambda x: x[1]) for i in cost]
 		list_nth = first_best_sol
 		
@@ -144,7 +148,7 @@ def algo(inst, mode="first_combinations", nth_best=2, time_limit=float('inf'), u
 			for candidate in candidates:
 				#print(time.time() - start_time)
 				if time.time() - start_time > time_limit:
-					return Solution(s, p, b, None, None, h, h_bar, None, d)
+					return Solution(s, p, b, sol_so_far, obj_so_far, h, h_bar, result_so_far, d)
 
 				candidate_result = generate_result(s, p, b, list(candidate))
 				fsb, candidate_collision = feasible_result(candidate_result, h, h_bar)
@@ -155,6 +159,10 @@ def algo(inst, mode="first_combinations", nth_best=2, time_limit=float('inf'), u
 						best_cost = candidate_cost
 						best_sol = list(candidate)
 						best_result = candidate_result
+						
+						obj_so_far = candidate_cost
+						sol_so_far = list(candidate)
+						result_so_far = candidate_result
 					
 			if  len(best_sol) != 0:
 				return Solution(s, p, b, best_sol, best_cost, h, h_bar, best_result, d)
@@ -168,7 +176,7 @@ def algo(inst, mode="first_combinations", nth_best=2, time_limit=float('inf'), u
 		
 		for candidate in candidates:
 			if time.time() - start_time > time_limit:
-				return Solution(s, p, b, None, None, h, h_bar, None, d)
+				return Solution(s, p, b, sol_so_far, obj_so_far, h, h_bar, result_so_far, d)
 			candidate_result = generate_result(s, p, b, list(candidate))
 			fsb, candidate_collision = feasible_result(candidate_result, h, h_bar)
 			
@@ -178,6 +186,10 @@ def algo(inst, mode="first_combinations", nth_best=2, time_limit=float('inf'), u
 					best_cost = candidate_cost
 					best_sol = list(candidate)
 					best_result = candidate_result
+					
+					obj_so_far = candidate_cost
+					sol_so_far = list(candidate)
+					result_so_far = candidate_result
 		
 		return Solution(s, p, b, best_sol, best_cost, h, h_bar, best_result, d)	
 	
