@@ -1,18 +1,24 @@
 from algo import algo, algo_test
 from utils import visualize_result, read_solution, read_instance, generate_no_maintenance_result, calculate_result_cost
 import itertools
+import pickle
 
-inst = read_instance("m_8_maxh_4_n_max_20_h_0_b_0_1.txt", True)
+#inst = read_instance("2021_4_18__60_schedule.txt", True)
+obj, runtime = algo_test("2021_4_18__60_schedule.txt", "nth_combinations", nth_best=3, time_limit=0.0000000000001)
 
-#print(inst.b)
-#result = generate_no_maintenance_result(inst)
-#obj = calculate_result_cost(result, inst.d, inst.rA, inst.rB, inst.cD, inst.cT)
+print(obj)
 
-#algo(inst, "nth_combinations", 3)
 
-#r = algo(inst, "first_combinations")
-#r = algo(inst, "nth_combinations", 3)
-#r = algo(inst, "nth_combinations", 5)
-r = algo(inst, "waiting")
 
-visualize_result([], 0, r.result, r.obj, r.d)
+
+
+
+
+
+#r = algo(inst, "waiting")
+#visualize_result([], 0, r.result, r.obj, r.d)
+
+#pickle_in = open("result.pickle", "rb")
+#r = pickle.load(pickle_in)
+
+#visualize_result([], 0, r.result, r.obj, r.d)

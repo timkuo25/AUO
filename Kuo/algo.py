@@ -2,8 +2,9 @@ from utils import read_instance, Solution, feasible_result, generate_result, gen
 import time
 from itertools import product
 import copy
+#import pickle
 
-def algo(inst, mode="first_combinations", nth_best=2):
+def algo(inst, mode="first_combinations", nth_best=2, time_limit=float('inf'), u_bar=float('inf')):
 	m = inst.m
 	h_bar = inst.h_bar
 	n = inst.n
@@ -89,6 +90,9 @@ def algo(inst, mode="first_combinations", nth_best=2):
 	
 	if fsb: return Solution(s, p, b, first_best_sol, first_best_cost, h, h_bar, first_best_result, d)
 	
+	#print(cost)
+	#print(elim_list)
+	
 	
 	if mode == "first_combinations":
 		list_add_zero = [[i, 0] for i in first_best_sol]
@@ -105,11 +109,15 @@ def algo(inst, mode="first_combinations", nth_best=2):
 			if fsb:
 				candidate_cost = calculate_result_cost(candidate_result, d, rA, rB, cD, cT)
 				if candidate_cost < best_cost:
+
 					best_cost = candidate_cost
 					best_sol = list(candidate)
 					best_result = candidate_result
-		
-		
+		'''	
+		pickle_out = open("result.pickle", "wb")
+		pickle.dump(Solution(s, p, b, best_sol, best_cost, h, h_bar, best_result, d), pickle_out)
+		pickle_out.close()
+		'''
 		return Solution(s, p, b, best_sol, best_cost, h, h_bar, best_result, d)
 		
 	
@@ -118,6 +126,8 @@ def algo(inst, mode="first_combinations", nth_best=2):
 		list_nth = first_best_sol
 		
 		list_nth = [[list_nth[j]] for j in range(len(list_nth))]
+		
+		start_time = time.time()
 		
 		for i in range(1, nth_best):
 			for j in range(len(list_nth)):
@@ -132,6 +142,10 @@ def algo(inst, mode="first_combinations", nth_best=2):
 			best_result = []
 			
 			for candidate in candidates:
+				#print(time.time() - start_time)
+				if time.time() - start_time > time_limit:
+					return Solution(s, p, b, None, None, h, h_bar, None, d)
+
 				candidate_result = generate_result(s, p, b, list(candidate))
 				fsb, candidate_collision = feasible_result(candidate_result, h, h_bar)
 				
@@ -153,6 +167,8 @@ def algo(inst, mode="first_combinations", nth_best=2):
 		best_result = []
 		
 		for candidate in candidates:
+			if time.time() - start_time > time_limit:
+				return Solution(s, p, b, None, None, h, h_bar, None, d)
 			candidate_result = generate_result(s, p, b, list(candidate))
 			fsb, candidate_collision = feasible_result(candidate_result, h, h_bar)
 			
@@ -225,15 +241,23 @@ def algo(inst, mode="first_combinations", nth_best=2):
 					best_schedule_shifted = copy.deepcopy(schedule_shifted)
 			
 			
-			result[best_machine_to_shift - 1] = result_no_maintenance[best_machine_to_shift - 1]
-			obj_no_wait = calculate_result_cost(result, d, rA, rB, cD, cT)
-						
-			# move and renew new_s
-			result[best_machine_to_shift - 1] = copy.deepcopy(best_schedule_shifted)
-			obj_wait = calculate_result_cost(result, d, rA, rB, cD, cT)
+			m_not_shifted = list(filter(lambda x: x[2], result[best_machine_to_shift - 1]))
+			m_shifted = list(filter(lambda x: x[2], best_schedule_shifted))
 			
-			if obj_no_wait < obj_wait:
+			if m_shifted[0][1] - m_not_shifted[0][1] > u_bar:
 				result[best_machine_to_shift - 1] = copy.deepcopy(result_no_maintenance[best_machine_to_shift - 1])
+			
+			else:
+				result[best_machine_to_shift - 1] = result_no_maintenance[best_machine_to_shift - 1]
+				obj_no_wait = calculate_result_cost(result, d, rA, rB, cD, cT)
+				
+				
+				# move and renew new_s
+				result[best_machine_to_shift - 1] = copy.deepcopy(best_schedule_shifted)
+				obj_wait = calculate_result_cost(result, d, rA, rB, cD, cT)
+				
+				if obj_no_wait < obj_wait:
+					result[best_machine_to_shift - 1] = copy.deepcopy(result_no_maintenance[best_machine_to_shift - 1])
 			
 			# check feasibility
 			fsb, collision = feasible_result(result, h, h_bar)
@@ -245,10 +269,10 @@ def algo(inst, mode="first_combinations", nth_best=2):
 
 		
 # 給雪燕的，只輸出opt和running time	
-def algo_test(instance_path, mode="first_combinations", nth_best=2):
+def algo_test(instance_path, mode="first_combinations", nth_best=2, time_limit=float('inf')):
 	inst = read_instance(instance_path, True)
 	start_time = time.time()
-	sol = algo(inst, mode, nth_best)
+	sol = algo(inst, mode, nth_best, time_limit)
 	running_time = time.time() - start_time
 	
 	return sol.obj, running_time

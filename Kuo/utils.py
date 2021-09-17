@@ -174,7 +174,7 @@ def visualize_result(result_no_maintenance, obj_no_maintenance, result, obj, d =
 	
 	
 	gnt[1].set_ylim(0, 5*(m + 1)) 
-	gnt[1].set_xlim(0, 1500)
+	gnt[1].set_xlim(0, 1800)
 	gnt[1].set_xlabel('Time') 
 	gnt[1].set_ylabel('Result') 
 	gnt[1].set_yticks([5 * i for i in range(1, m + 1)])
@@ -219,6 +219,7 @@ def calculate_result_cost(result, d, rA, rB, cD, cT):
 	for i in range(len(result)):
 		maintained = False
 		j = 0
+		
 		for item in result[i]:
 			if not item[2]:
 				tardiness_cost += max(0, item[1] - d[i + 1][j + 1])
@@ -229,7 +230,7 @@ def calculate_result_cost(result, d, rA, rB, cD, cT):
 				j += 1
 			else:
 				maintained = True
-				
+		#print(tardiness_cost, defect_cost)
 	return cD * defect_cost + cT * tardiness_cost
 
 def feasible_result(result, h, h_bar):
