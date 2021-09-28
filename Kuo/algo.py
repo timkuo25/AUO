@@ -148,6 +148,11 @@ def algo(inst, mode="first_combinations", nth_best=2, time_limit=float('inf'), u
 			for candidate in candidates:
 				#print(time.time() - start_time)
 				if time.time() - start_time > time_limit:
+					if sol_so_far == None:
+						result_inf = generate_no_maintenance_result(inst)
+						obj_inf = calculate_result_cost(result_inf, inst.d, inst.rA, inst.rB, inst.cD, inst.cT)
+						return Solution(s, p, b, [0]*(m + 1), obj_inf, h, h_bar, result_inf, d)
+						
 					return Solution(s, p, b, sol_so_far, obj_so_far, h, h_bar, result_so_far, d)
 
 				candidate_result = generate_result(s, p, b, list(candidate))
