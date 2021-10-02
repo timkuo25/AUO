@@ -146,7 +146,6 @@ def Model_period(ma, h_bar, n, rA, rB, h, b, s, p, d, cD, cT):  # t is the perio
         TT.append(last[i])
     TT = list(set(TT))
     TT.sort()  # Complete the T period set
-    print("TT=", TT)
 
     temp = 0
     span = {}  # Span that includes period to period
@@ -161,7 +160,6 @@ def Model_period(ma, h_bar, n, rA, rB, h, b, s, p, d, cD, cT):  # t is the perio
                     break
             if valid == 0:
                 span[i, j] = (TT.index(ss[i, j]), len(TT)-1)
-    print("span=", span)
 
     m = Model("research")
     m.setParam('Timelimit', 1200)
@@ -248,94 +246,94 @@ def Model_period(ma, h_bar, n, rA, rB, h, b, s, p, d, cD, cT):  # t is the perio
     return opt, model_spend, gap, lowerbound
 
 
-# def Model_eachMin(ma, h, b, n, rA, rB, s, p, d, cD, cT):  # t is each minute
-#     start = time.time()
-#     m = Model("research")
-#     m.setParam('Timelimit', 1200)
-#     max = 0
-#     for i in range(1, ma+1):
-#         for j in range(n[i], n[i]+1):
-#             if s[i][j]+p[i][j] > max:
-#                 max = s[i][j]+p[i][j]
-#     T = max
+def Model_eachMin(ma, h_bar, n, rA, rB, h, b, s, p, d, cD, cT):  # t is each minute
+    start = time.time()
+    m = Model("research")
+    m.setParam('Timelimit', 1200)
+    max = 0
+    for i in range(1, ma+1):
+        for j in range(n[i], n[i]+1):
+            if s[i][j]+p[i][j] > max:
+                max = s[i][j]+p[i][j]
+    T = max
 
-#     # Decision Variables
-#     X = {}
-#     Y = {}
-#     W = {}
-#     Z = {}
-#     A = {}
+    # Decision Variables
+    X = {}
+    Y = {}
+    W = {}
+    Z = {}
+    A = {}
 
-#     for i in range(1, ma+1):
-#         for j in range(n[i]+1):
-#             X[i, j] = m.addVar(vtype="B", name="X(%s,%s)" % (i, j))
-#     for i in range(1, ma+1):
-#         for j in range(n[i]+1):
-#             Y[i, j] = m.addVar(vtype="B", name="Y(%s,%s)" % (i, j))
-#     for i in range(1, ma+1):
-#         for j in range(n[i]+1):
-#             W[i, j] = m.addVar(vtype="I", name="W(%s,%s)" % (i, j))
-#     for i in range(1, ma+1):
-#         for j in range(n[i]+1):
-#             Z[i, j] = m.addVar(vtype="I", name="Z(%s,%s)" % (i, j))
-#     for i in range(1, ma+1):
-#         for j in range(n[i]+1):
-#             for t in range(T):
-#                 A[i, j, t] = m.addVar(
-#                     vtype="B", name="A(%s,%s,%s)" % (i, j, t))
-#     m.update()
+    for i in range(1, ma+1):
+        for j in range(n[i]+1):
+            X[i, j] = m.addVar(vtype="B", name="X(%s,%s)" % (i, j))
+    for i in range(1, ma+1):
+        for j in range(n[i]+1):
+            Y[i, j] = m.addVar(vtype="B", name="Y(%s,%s)" % (i, j))
+    for i in range(1, ma+1):
+        for j in range(n[i]+1):
+            W[i, j] = m.addVar(vtype="I", name="W(%s,%s)" % (i, j))
+    for i in range(1, ma+1):
+        for j in range(n[i]+1):
+            Z[i, j] = m.addVar(vtype="I", name="Z(%s,%s)" % (i, j))
+    for i in range(1, ma+1):
+        for j in range(n[i]+1):
+            for t in range(T):
+                A[i, j, t] = m.addVar(
+                    vtype="B", name="A(%s,%s,%s)" % (i, j, t))
+    m.update()
 
-#     # Constraints
-#     for i in range(1, ma+1):
-#         m.addConstr(X[i, 0] == 0)
+    # Constraints
+    for i in range(1, ma+1):
+        m.addConstr(X[i, 0] == 0)
 
-#     for (i, j) in X:
-#         if j != 0:
-#             for k in range(j, n[i]+1):
-#                 m.addConstr(Y[i, k] >= X[i, j])
+    for (i, j) in X:
+        if j != 0:
+            for k in range(j, n[i]+1):
+                m.addConstr(Y[i, k] >= X[i, j])
 
-#     for i in range(1, ma + 1):  # There is at most one maintenance on the machine i
-#         m.addConstr(quicksum(X[i, j] for j in range(n[i] + 1)) <= 1)
+    for i in range(1, ma + 1):  # There is at most one maintenance on the machine i
+        m.addConstr(quicksum(X[i, j] for j in range(n[i] + 1)) <= 1)
 
-#     for (i, j) in Y:
-#         m.addConstr(Y[i, j] <= quicksum(X[i, k] for k in range(1, j+1)))
+    for (i, j) in Y:
+        m.addConstr(Y[i, j] <= quicksum(X[i, k] for k in range(1, j+1)))
 
-#     for (i, j) in Z:
-#         m.addConstr(Z[i, j] >= s[i][j] + p[i][j] + W[i, j] - d[i][j])
+    for (i, j) in Z:
+        m.addConstr(Z[i, j] >= s[i][j] + p[i][j] + W[i, j] - d[i][j])
 
-#     for (i, j) in W:
-#         m.addConstr(W[i, j] >= b * quicksum(X[i, k] for k in range(1, j+1)) -
-#                     quicksum(Y[i, k] * (s[i][k]-s[i][k-1] - p[i][k-1]) for k in range(1, j+1)))
+    for (i, j) in W:
+        m.addConstr(W[i, j] >= b[i] * quicksum(X[i, k] for k in range(1, j+1)) -
+                    quicksum(Y[i, k] * (s[i][k]-s[i][k-1] - p[i][k-1]) for k in range(1, j+1)))
 
-#     for t in range(T):
-#         m.addConstr(quicksum(quicksum(A[i, j, t] * X[i, j]
-#                                       for j in range(n[i]+1)) for i in range(1, ma+1)) <= h)
+    for t in range(T):
+        m.addConstr(quicksum(quicksum(A[i, j, t] * X[i, j] * h[i]
+                                      for j in range(n[i]+1)) for i in range(1, ma+1)) <= h_bar)
 
-#     for (i, j) in X:
-#         if j != 0:
-#             for t in range(T):
-#                 if t in range(s[i][j-1] + p[i][j-1] + 1, s[i][j-1] + p[i][j-1] + b + 1):
-#                     m.addConstr(A[i, j, t] == 1)
-#                 else:
-#                     m.addConstr(A[i, j, t] == 0)
+    for (i, j) in X:
+        if j != 0:
+            for t in range(T):
+                if t in range(s[i][j-1] + p[i][j-1] + 1, s[i][j-1] + p[i][j-1] + int(b[i]) + 1):
+                    m.addConstr(A[i, j, t] == 1)
+                else:
+                    m.addConstr(A[i, j, t] == 0)
 
-#     m.update()
-#     m.setObjective(cD * quicksum(p[i][j] * ((rA[i] * Y[i, j]) + rB[i] * (1 - Y[i, j])) for (i, j) in Y)
-#                    + cT * quicksum(Z[i, j] for (i, j) in Z), GRB.MINIMIZE)
-#     m.Params.LogToConsole = 0
-#     m.optimize()
-# #
-#     # Output
-#     if m.status == 2:
-#         opt = m.ObjVal
-#         gap = 0
-#         lowerbound = opt
-#     elif m.status == 9:
-#         opt = m.ObjVal
-#         gap = m.MIPGap
-#         lowerbound = opt/(gap+1)
+    m.update()
+    m.setObjective(quicksum(p[i][j] * ((rA[i] * Y[i, j]) + rB[i] * (1 - Y[i, j])) for (i, j) in Y)
+                   + quicksum(Z[i, j] for (i, j) in Z), GRB.MINIMIZE)
+    m.Params.LogToConsole = 0
+    m.optimize()
 
-#     end = time.time()
-#     model_spend = end - start
+    # Output
+    if m.status == 2:
+        opt = m.ObjVal
+        gap = 0
+        lowerbound = opt
+    elif m.status == 9:
+        opt = m.ObjVal
+        gap = m.MIPGap
+        lowerbound = opt/(gap+1)
 
-#     return opt, model_spend, gap, lowerbound
+    end = time.time()
+    model_spend = end - start
+
+    return opt, model_spend, gap, lowerbound
